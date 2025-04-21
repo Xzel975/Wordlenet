@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "tI6ECjYErPs=",
+  "success": true,
+  "projectFilePath": "G:\\Wordles\\Wordles.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\ximen\\.nuget\\packages\\spectre.console\\0.50.1-preview.0.3\\spectre.console.0.50.1-preview.0.3.nupkg.sha512",
+    "C:\\Users\\ximen\\.nuget\\packages\\spectre.console.cli\\0.50.1-preview.0.3\\spectre.console.cli.0.50.1-preview.0.3.nupkg.sha512",
+    "C:\\Users\\ximen\\.nuget\\packages\\system.memory\\4.6.3\\system.memory.4.6.3.nupkg.sha512"
+  ],
+  "logs": []
+}
