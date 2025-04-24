@@ -11,24 +11,25 @@ namespace Wordle
 
 public static List<string> Palabras { get; set; } = new List<string>();
 public static Table juego = new Table();
+public static Table nivel = new Table();
 
-//Se usan la variable x para saber en que posicion se encuentra cada palabra y Y para saber en que fila se esta
+private static string select {get; set;} = "Ingrese una palabra";
+
+
 private static int Y = 0;
-private static int X = 0;
+
 
         public  void addPalabras()
         {
             
-        //Aqui se añaden las palabras del archivo de texto a una lista de palabras
 
-        //El try de aca intenta ver si existe el archivo y en caso de que exista añadira las palabras a la lista
       try
       {
         if(File.Exists("list.txt") == true)
         {
             foreach (string linea in File.ReadLines("list.txt"))
             {
-                Palabras.Add(linea);
+                Palabras.Add(linea.ToLower());
             }
 
         AnsiConsole.Status() .Start("Cargando juego",ctx =>
@@ -66,39 +67,32 @@ private static int X = 0;
     {
        
  
-    //Se crea la tabla del wordle
+    
 
-           Table game = generationTable(Palabras[u.nivel]);
-    //Se crea la tabla del menu
-            Table menu = new Table();
-
-            menu.AddColumn($"[green]Nivel:{u.nivel}[/]");
-            menu.AddRow(game);
-            menu.AddRow("Ingresa La palabra");
-            menu.Border(TableBorder.Ascii);
+            nivel = generationTable(u);
+    
            
-           juego = game;
-             return menu;
 
+            juego.AddColumn($"[green]juego:{u.nivel}[/]");
+            juego.AddRow(nivel);
+            juego.AddRow($"{select}");
+            juego.Border(TableBorder.Ascii);
+           
+           
+             
+            return juego;
     }
 
-    public static Table generationTable(string palabra)
+    public static Table generationTable(User u)
     {
-    //Se generan las variables x , la cual tiene el numero de columnas
+             int x = 0;
+            var tableWordle = new Table();
 
-            int x = 0;
-    
- 
-    //Se crea la tabla
-
-   
-
-            var tabla = new Table();
-
-            foreach(char letra in palabra)
+            foreach(char letra in Palabras[u.nivel])
             {
+                     
                  string[] wordle = new string[]{"w","o","r","d","l","e","s","","C","#"};
-                      tabla.AddColumn(wordle[x]);
+                      tableWordle.AddColumn(wordle[x]);
                 x ++;
 
                 
@@ -106,72 +100,64 @@ private static int X = 0;
             }
 
 var rowValues = Enumerable.Repeat("______", x).ToArray();  
-        //Se crean las filas por defecto son 5
+        
 
      for(int i = 5; i > 0; i --)
      {
-tabla.AddRow(rowValues);
+tableWordle.AddRow(rowValues);
      }
     
-    
-        
+   
 
-
-        return tabla;
+        return tableWordle;
     }
 
- public static void updateTable(Table a,User u)
+ public static void updateTable(Table a, User u)
+{
+    Table updateTable = a;
+    int recorrido = 5;
+
+   
+    while (recorrido > 0)
     {
-
-        
-        Table updateTable = a;
-
-        int recorrido = 5;
-        string select = "";
-
-//Aqui se le preguntara la palabra al usuario y en caso de tener la misma cantidad de Caracteres 
-
-        while(recorrido > 0)
+        select = AnsiConsole.Prompt(new TextPrompt<string>("..."));
+        if (select.Length == Word.Palabras[u.nivel].Length)
         {
-         select = AnsiConsole.Prompt(new TextPrompt<string>("..."));
-    if(select.Length == Word.Palabras[u.nivel].Length)
-    {
-        comprobarPalabra(Palabras[u.nivel],u);
+            comprobarPalabra(select.ToLower(), u);
+            Console.Clear();
+           
+            juego = new Table();
+            juego.AddColumn($"[green]Nivel:{u.nivel}[/]");
+            juego.AddRow(nivel);
+            juego.AddRow($"{select}");
+            juego.Border(TableBorder.Ascii);
 
-        AnsiConsole.Write(juego);
-        
-        if(select == Palabras[u.nivel])
+            AnsiConsole.Write(juego);
+
+            if (select == Palabras[u.nivel])
+            {
+                Win(u);
+                break;
+            }
+            else
+            {
+                recorrido--;
+                Y++;
+            }
+        }
+        else
         {
-            
-            Win();
-
+            AnsiConsole.WriteLine("[red]La palabra es muy pequeña o excede el límite[/]");
         }
-        else{
-
-                recorrido --;
-                Y ++;
-
-
-        }
-        
-
     }
 
-    else
+    if (select != Palabras[u.nivel])
     {
-        AnsiConsole.WriteLine("[red]La palabra es muy pequeña o excede el limite[/]");
+        Lose(u);
     }
-        }
-
-
-        if(select != Palabras[u.nivel])
-        {
-            Lose();
-        }
-        
-
+}
        
-    }
+    
 
 
     private static void comprobarPalabra(string palabra,User u)
@@ -206,15 +192,21 @@ tabla.AddRow(rowValues);
                 {
                     positionX.Add(posicionPalabra[x]);
 
-                  juego.UpdateCell(Y, x, new Text($"{posicionPalabra[X]}",new Style(Color.Green)));
+                  nivel.UpdateCell(Y, x, new Text($"{posicionPalabra[x]}",new Style(Color.Green)));
        
+       //En caso de estar letra en la palabra pero no en esa posición se pone de color amarillo
                 }
-                else if(nivelPalabras[x] != posicionPalabra[x])
+                else if(nivelPalabras.Contains(posicionPalabra[x]))
                 {
                     positionX.Add(posicionPalabra[x]);
 
-                  juego.UpdateCell(Y, x, new Text($"{posicionPalabra[X]}",new Style(Color.Red)));
+                  nivel.UpdateCell(Y, x, new Text($"{posicionPalabra[x]}",new Style(Color.Yellow)));
        
+                }
+            //Y en caso de NO estar la letra se pone de color blanco
+                else
+                {
+                     nivel.UpdateCell(Y, x, new Text($"{posicionPalabra[x]}",new Style(Color.White)));
                 }
 
 
@@ -224,23 +216,31 @@ tabla.AddRow(rowValues);
    
 }
 
-    public static void Win()
+    public static void Win(User u)
     {
         Table win = new Table();
         Console.Clear();
         win.AddColumn("");
         win.AddRow(new Panel(new Text("Ganaste",new Style(Color.Gold1))));
+        u.nivel ++;
         AnsiConsole.Write(win);
+        Thread.Sleep(2000);
+        Word w = new Word();
+        Program.saveDates(u);
+        Program.menu(u,w);
 
     }
-    public static void Lose()
+    public static void Lose(User u)
     {
 
-Table win = new Table();
+Table lose = new Table();
         Console.Clear();
-        win.AddColumn("");
-        win.AddRow(new Panel(new Text("Lose",new Style(Color.Gold1))));
-         AnsiConsole.Write(win);
+        lose.AddColumn("");
+        lose.AddRow(new Panel(new Text("Lose",new Style(Color.Gold1))));
+         AnsiConsole.Write(lose);
+         Thread.Sleep(2000);
+         Word w = new Word();
+        Program.menu(u,w);
     }
 
 
